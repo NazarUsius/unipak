@@ -5,23 +5,36 @@
 #include "commands.h"
 #include <iostream>
 #include <string>
+#include "package.h"
+#include "sstream"
+
+std::string osAllowed() {
+
+    std::map<std::string, std::string> osInfo;
+    std::map<std::string, std::string> osTools;
+    std::vector<std::string> allowedOs;
+    std::ostringstream oss;
+
+    osInfo = parseOsRelease();
+    allowedOs = isOsAllowed(osInfo["ID"]);
 
 
-void InstallPackage(const std::string& package) {
-    std::cout << "Installing package: " << package << std::endl;
+    if (allowedOs.empty()) {
+        allowedOs = isOsAllowed(osInfo["ID_LIKE"]);
+        if (allowedOs.empty()) {
+            return "OS release not allowed";
+        }
+    }
+
+    for (size_t i = 0; i < allowedOs.size(); ++i) {
+        oss << allowedOs[i];
+        if (i != allowedOs.size() - 1) oss << ", ";
+    }
+
+    return oss.str();
+
 }
 
-void DeletePackage(const std::string& package) {
-    std::cout << "Deleting package: " << package << std::endl;
-}
-
-void UpdateAll() {
-    std::cout << "Updating all packages" << std::endl;
-}
-
-void SearchPackage(const std::string& package) {
-    std::cout << "Searching package: " << package << std::endl;
-}
 
 int ParseCommand(int argc, char* argv[]) {
     if (argc < 2) {
@@ -31,32 +44,15 @@ int ParseCommand(int argc, char* argv[]) {
 
     std::string command = argv[1];
 
-    if (command == "install") {
-        if (argc < 3) {
-            std::cerr << "Error: 'install' requires package name" << std::endl;
-            return 0;
-        }
-        InstallPackage(argv[2]);
-    }
 
-    else if (command == "delete") {
-        if (argc < 3) {
-            std::cerr << "Error: 'delete' requires package name" << std::endl;
-            return 0;
-        }
-        DeletePackage(argv[2]);
-    }
 
-    else if (command == "update") {
-        UpdateAll();
-    }
-
-    else if (command == "search") {
+    if (command == "search") {
         if (argc < 3) {
             std::cerr << "Error: 'search' requires package name" << std::endl;
             return 0;
         }
-        SearchPackage(argv[2]);
+        std::cout << osAllowed() << std::endl;
+
     }
 
 
